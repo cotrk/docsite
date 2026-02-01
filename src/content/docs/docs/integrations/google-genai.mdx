@@ -8,7 +8,7 @@ import CopyMarkdownButton from '../../../../components/CopyMarkdownButton.astro'
 import LanguageContent from '../../../../components/LanguageContent.astro';
 
 <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 1rem 0 1rem 0;">
-  <LanguageSelector />
+  <LanguageSelector supportedLanguages="js go python dart" />
   <CopyMarkdownButton />
 </div>
 
@@ -26,7 +26,19 @@ For enterprise features like grounding, context caching, Vector Search, and Mode
 npm i --save @genkit-ai/google-genai
 ```
 
+</LanguageContent>
+
+<LanguageContent lang="dart">
+
+```bash
+dart pub add genkit_google_genai
+```
+
+</LanguageContent>
+
 ## Configuration
+
+<LanguageContent lang="js">
 
 ```typescript
 import { genkit } from 'genkit';
@@ -41,11 +53,32 @@ const ai = genkit({
 });
 ```
 
+</LanguageContent>
+
+<LanguageContent lang="dart">
+
+```dart
+import 'package:genkit/genkit.dart';
+import 'package:genkit_google_genai/genkit_google_genai.dart';
+
+void main() {
+  final ai = Genkit(
+    plugins: [
+      googleAI(apiKey: 'YOUR_API_KEY'), // Optional if GEMINI_API_KEY env var is set
+    ],
+  );
+}
+```
+
+</LanguageContent>
+
 **Authentication:** Requires a Google AI API Key, which you can get from [Google AI Studio](https://aistudio.google.com/apikey). You can provide this key by setting the `GEMINI_API_KEY` or `GOOGLE_API_KEY` environment variables, or by passing it in the plugin configuration.
 
 ## Usage Examples
 
 ### Text Generation (Gemini)
+
+<LanguageContent lang="js">
 
 ```typescript
 import { genkit } from 'genkit';
@@ -63,7 +96,31 @@ const response = await ai.generate({
 console.log(response.text());
 ```
 
+</LanguageContent>
+
+<LanguageContent lang="dart">
+
+```dart
+import 'package:genkit/genkit.dart';
+import 'package:genkit_google_genai/genkit_google_genai.dart';
+
+void main() async {
+  final ai = Genkit(plugins: [googleAI()]);
+
+  final response = await ai.generate(
+    model: googleAI.gemini('gemini-2.5-flash'),
+    prompt: 'Tell me something interesting about Google AI.',
+  );
+
+  print(response.text);
+}
+```
+
+</LanguageContent>
+
 ### Text Embedding
+
+<LanguageContent lang="js">
 
 ```typescript
 const embeddings = await ai.embed({
@@ -72,7 +129,19 @@ const embeddings = await ai.embed({
 });
 ```
 
+</LanguageContent>
+
+<LanguageContent lang="dart">
+
+:::note[Feature unavailable for Dart]
+Text embedding is not yet supported in the Dart Google GenAI plugin.
+:::
+
+</LanguageContent>
+
 ### Image Generation (Imagen)
+
+<LanguageContent lang="js">
 
 ```typescript
 const response = await ai.generate({
@@ -83,9 +152,21 @@ const response = await ai.generate({
 const generatedImage = response.media();
 ```
 
+</LanguageContent>
+
+<LanguageContent lang="dart">
+
+:::note[Feature unavailable for Dart]
+Image generation via Imagen is not yet supported in the Dart Google GenAI plugin.
+:::
+
+</LanguageContent>
+
 ### Thinking Config
 
 #### Thinking Level (Gemini 3.0)
+
+<LanguageContent lang="js">
 
 ```typescript
 const response = await ai.generate({
@@ -99,7 +180,27 @@ const response = await ai.generate({
 });
 ```
 
+</LanguageContent>
+
+<LanguageContent lang="dart">
+
+```dart
+final response = await ai.generate(
+  model: googleAI.gemini('gemini-3-pro-preview'),
+  prompt: 'what is heavier, one kilo of steel or one kilo of feathers',
+  config: {
+    'thinkingConfig': {
+      'thinkingLevel': 'HIGH', // Or 'LOW' or 'MEDIUM'
+    },
+  },
+);
+```
+
+</LanguageContent>
+
 #### Thinking Budget (Gemini 2.5)
+
+<LanguageContent lang="js">
 
 ```typescript
 const { message } = await ai.generate({
@@ -114,6 +215,25 @@ const { message } = await ai.generate({
 });
 ```
 
+</LanguageContent>
+
+<LanguageContent lang="dart">
+
+```dart
+final response = await ai.generate(
+  model: googleAI.gemini('gemini-2.5-pro'),
+  prompt: 'what is heavier, one kilo of steel or one kilo of feathers',
+  config: {
+    'thinkingConfig': {
+      'thinkingBudget': 1024,
+      'includeThoughts': true,
+    },
+  },
+);
+```
+
+</LanguageContent>
+
 ## Gemini API Features
 
 The following features are available through the `googleAI` plugin.
@@ -121,6 +241,8 @@ The following features are available through the `googleAI` plugin.
 ### Gemini Files API
 
 You can use files uploaded to the Gemini Files API with Genkit:
+
+<LanguageContent lang="js">
 
 ```ts
 import { GoogleAIFileManager } from '@google/generative-ai/server';
@@ -151,6 +273,16 @@ const response = await ai.generate({
 });
 ```
 
+</LanguageContent>
+
+<LanguageContent lang="dart">
+
+:::note[Feature unavailable for Dart]
+The Gemini Files API is not yet available in the Dart SDK.
+:::
+
+</LanguageContent>
+
 ### Video Generation (Veo) Models
 
 The Google Generative AI plugin provides access to video generation capabilities through the Veo models. These models can generate videos from text prompts or manipulate existing images to create dynamic video content.
@@ -158,6 +290,8 @@ The Google Generative AI plugin provides access to video generation capabilities
 #### Basic Usage: Text-to-Video Generation
 
 To generate a video from a text prompt using the Veo model:
+
+<LanguageContent lang="js">
 
 ```ts
 import { googleAI } from '@genkit-ai/google-genai';
@@ -214,6 +348,18 @@ async function downloadVideo(video: MediaPart, path: string) {
 }
 ```
 
+</LanguageContent>
+
+<LanguageContent lang="dart">
+
+:::note[Feature unavailable for Dart]
+Video generation via Veo is not yet fully documented/supported in the Dart examples.
+:::
+
+</LanguageContent>
+
+<LanguageContent lang="js">
+
 Veo 3 uses the exact same API, just make sure you only use supported config options (see below).
 
 To use the Veo 3 model, reference `veo-3.0-generate-preview`:
@@ -253,6 +399,8 @@ let { operation } = await ai.generate({
 });
 ```
 
+</LanguageContent>
+
 #### Configuration Options
 
 The Veo models support various configuration options.
@@ -286,6 +434,8 @@ The Google Genai plugin provides access to text-to-speech capabilities through G
 #### Basic Usage
 
 To generate audio using a TTS model:
+
+<LanguageContent lang="js">
 
 ```ts
 import { googleAI } from '@genkit-ai/google-genai';
@@ -340,9 +490,43 @@ async function toWav(pcmData: Buffer, channels = 1, rate = 24000, sampleWidth = 
 }
 ```
 
+</LanguageContent>
+
+<LanguageContent lang="dart">
+
+```dart
+import 'package:genkit/genkit.dart';
+import 'package:genkit_google_genai/genkit_google_genai.dart';
+// Note: You'll need a way to save the file, e.g., 'dart:io'
+
+final response = await ai.generate(
+  model: googleAI.gemini('gemini-2.5-flash-preview-tts'),
+  prompt: 'Say that Genkit is an amazing Gen AI library',
+  config: {
+    'responseModalities': ['AUDIO'],
+    'speechConfig': {
+      'voiceConfig': {
+        'prebuiltVoiceConfig': {'voiceName': 'Algenib'},
+      },
+    },
+  },
+);
+
+final media = response.media;
+if (media != null) {
+  // Save media.url (data URI) to specific file
+  // String base64Data = media.url.split(',')[1];
+  // ... decode and write to file ...
+}
+```
+
+</LanguageContent>
+
 #### Multi-speaker Audio Generation
 
 You can generate audio with multiple speakers, each with their own voice:
+
+<LanguageContent lang="js">
 
 ```ts
 const response = await ai.generate({
@@ -374,6 +558,8 @@ const response = await ai.generate({
 });
 ```
 
+</LanguageContent>
+
 When using multi-speaker configuration, the model automatically detects speaker labels in the text (like "Speaker1:" and "Speaker2:") and applies the corresponding voice to each speaker's lines.
 
 #### Configuration Options
@@ -383,6 +569,8 @@ The Gemini TTS models support various configuration options:
 ##### Voice Selection
 
 You can choose from different pre-built voices with unique characteristics:
+
+<LanguageContent lang="js">
 
 ```ts
 speechConfig: {
@@ -394,6 +582,8 @@ speechConfig: {
 }
 ```
 
+</LanguageContent>
+
 ##### Speech Emphasis
 
 You can use markdown-style formatting in your prompt to add emphasis:
@@ -403,13 +593,19 @@ You can use markdown-style formatting in your prompt to add emphasis:
 
 Example:
 
+<LanguageContent lang="js">
+
 ```ts
 prompt: 'Genkit is an **amazing** Gen AI *library*!';
 ```
 
+</LanguageContent>
+
 ##### Advanced Speech Parameters
 
 For more control over the generated speech:
+
+<LanguageContent lang="js">
 
 ```ts
 speechConfig: {
@@ -424,6 +620,8 @@ speechConfig: {
 }
 ```
 
+</LanguageContent>
+
 - `speakingRate`: Controls the speed of speech (higher values = faster speech)
 - `pitch`: Adjusts the pitch of the voice (higher values = higher pitch)
 - `volumeGainDb`: Controls the volume (higher values = louder)
@@ -436,7 +634,7 @@ For more detailed information about the Gemini TTS models and their configuratio
 - Explore [creating flows](/docs/flows) to build structured AI workflows
 - To use the Gemini API at enterprise scale or leverage Vertex vector search and Model Garden, see the [Vertex AI plugin](/docs/integrations/vertex-ai)
 
-</LanguageContent>
+
 
 <LanguageContent lang="go">
 
