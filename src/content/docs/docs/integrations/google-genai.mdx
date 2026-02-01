@@ -1113,13 +1113,15 @@ response = await ai.generate(
 
 The `genkit_google_genai` package provides the `GoogleAI` plugin for accessing Google's generative AI models via the Google Gemini API.
 
-## Installation
+## Setup
+
+### Installation
 
 ```bash
 dart pub add genkit_google_genai
 ```
 
-## Configuration
+### Configuration
 
 To use the Google Gemini API, you need an API key.
 
@@ -1136,9 +1138,47 @@ void main() {
 }
 ```
 
-## Usage
+### Authentication
 
-### Text Generation
+Requires a Gemini API Key, which you can get from [Google AI Studio](https://aistudio.google.com/apikey).
+
+1. **Environment variables**: Set `GEMINI_API_KEY`
+2. **Plugin configuration**: Pass `apiKey` when initializing the plugin (shown above)
+3. **Per-request**: Override the API key for specific requests in the config:
+
+```dart
+final response = await ai.generate(
+  model: googleAI.gemini('gemini-2.5-flash'),
+  prompt: 'Your prompt here',
+  config: GeminiOptions(
+    apiKey: 'different-api-key', // Use a different API key for this request
+  ),
+);
+```
+
+## Language Models
+
+You can create models that call the Google Generative AI API. The models support all standard Genkit features including tool calls, streaming, and multimodal input.
+
+### Available Models
+
+**Gemini 3 Series** - Latest experimental models with state-of-the-art reasoning:
+- `gemini-3-pro-preview`
+- `gemini-3-flash-preview`
+- `gemini-3-pro-image-preview`
+
+**Gemini 2.5 Series** - Latest stable models:
+- `gemini-2.5-pro`
+- `gemini-2.5-flash`
+- `gemini-2.5-flash-lite`
+
+**Gemma 3 Series** - Open models:
+- `gemma-3-27b-it`
+- `gemma-3-12b-it`
+- `gemma-3-4b-it`
+- `gemma-3-1b-it`
+
+### Basic Usage
 
 ```dart
 import 'package:genkit/genkit.dart';
@@ -1157,6 +1197,8 @@ void main() async {
 ```
 
 ### Structured Output
+
+Use the `schemantic` package to define strongly-typed schemas for structured output.
 
 ```dart
 import 'package:genkit/genkit.dart';
@@ -1178,36 +1220,21 @@ final response = await ai.generate(
   prompt: 'Generate a profile for a fictional character',
 );
 
-print(response.output);
+final profile = CharacterProfile.fromJson(response.output!);
+print('${profile.name} (${profile.age}): ${profile.bio}');
 ```
 
-### Multimodal Input
+#### Schema Limitations
 
-Gemini models can accept various media types (images, video, audio, PDF) as input.
+The Gemini API has specific limitations for JSON schemas:
+- **Unions**: `oneOf` allows only object targets. Primitive unions (e.g., `String | int`) are not supported.
+- **Validation**: Regex patterns, min/max length, and other validation keywords are often ignored or may cause errors.
 
-```dart
-final response = await ai.generate(
-  model: googleAI.gemini('gemini-2.5-flash'),
-  prompt: 'Describe what is in this image',
-  messages: [
-    Message(
-      role: Role.user,
-      content: [
-        MediaPart(
-          media: Media(
-            url: 'https://example.com/image.jpg',
-            contentType: 'image/jpeg',
-          ),
-        ),
-      ],
-    ),
-  ],
-);
-```
+### Thinking and Reasoning
 
-### Specialized Features
+Gemini 2.5 and newer models support "Thinking" to improve reasoning for complex tasks.
 
-**Thinking:**
+**Thinking Level (Gemini 3.0):**
 
 ```dart
 final response = await ai.generate(
@@ -1216,15 +1243,82 @@ final response = await ai.generate(
   config: GeminiOptions(
     thinkingConfig: ThinkingConfig(
       includeThoughts: true,
-      thinkingBudget: 2048, 
+      // thinkingLevel currently inferred or defaulted by model
     ),
   ),
 );
 ```
 
-**Safety Settings:**
+**Thinking Budget (Gemini 2.5):**
 
 ```dart
+final response = await ai.generate(
+  model: googleAI.gemini('gemini-2.5-pro'),
+  prompt: 'what is heavier, one kilo of steel or one kilo of feathers',
+  config: GeminiOptions(
+    thinkingConfig: ThinkingConfig(
+      thinkingBudget: 8192,
+      includeThoughts: true,
+    ),
+  ),
+);
+```
+
+### Multimodal Input
+
+Gemini models can accept various media types as input.
+
+**Video:**
+
+```dart
+final response = await ai.generate(
+  model: googleAI.gemini('gemini-2.5-flash'),
+  prompt: 'What happens in this video?',
+  messages: [
+    Message(
+      role: Role.user,
+      content: [
+         MediaPart(
+          media: Media(
+            url: 'https://example.com/video.mp4',
+            contentType: 'video/mp4',
+          ),
+        ),
+      ],
+    ),
+  ],
+);
+```
+
+**Audio:**
+
+```dart
+final response = await ai.generate(
+  model: googleAI.gemini('gemini-2.5-flash'),
+  prompt: 'Transcribe this audio',
+  messages: [
+    Message(
+      role: Role.user,
+      content: [
+         MediaPart(
+          media: Media(
+            url: 'https://example.com/audio.mp3',
+            contentType: 'audio/mp3',
+          ),
+        ),
+      ],
+    ),
+  ],
+);
+```
+
+### Safety Settings
+
+Configure content filtering for different harm categories:
+
+```dart
+import 'package:genkit_google_genai/genkit_google_genai.dart';
+
 final response = await ai.generate(
   model: googleAI.gemini('gemini-2.5-flash'),
   prompt: 'Your prompt here',
@@ -1239,19 +1333,26 @@ final response = await ai.generate(
 );
 ```
 
-**Google Search Grounding:**
+### Google Search Grounding
+
+Enable Google Search to provide answers with current information.
 
 ```dart
 final response = await ai.generate(
   model: googleAI.gemini('gemini-2.5-flash'),
   prompt: 'What are the top tech news stories this week?',
   config: GeminiOptions(
-    googleSearchRetrieval: GoogleSearchRetrieval(),
+    googleSearchRetrieval: GoogleSearchRetrieval(
+      mode: 'MODE_DYNAMIC',
+      dynamicThreshold: 0.7,
+    ),
   ),
 );
 ```
 
-**Code Execution:**
+### Code Execution
+
+Enable the model to write and execute Python code for calculations.
 
 ```dart
 final response = await ai.generate(
@@ -1263,9 +1364,9 @@ final response = await ai.generate(
 );
 ```
 
-### Text-to-Speech
+## Speech Models
 
-GENKIT provides support for Gemini's text-to-speech capabilities.
+The Google GenAI plugin supports Gemini text-to-speech models, including multi-speaker support.
 
 ```dart
 import 'dart:convert';
@@ -1287,6 +1388,7 @@ final response = await ai.generate(
 );
 
 if (response.media != null) {
+  // Save the audio file
   final dataUrl = response.media!.url;
   final base64Data = dataUrl.split(',')[1];
   final bytes = base64Decode(base64Data);
@@ -1294,47 +1396,14 @@ if (response.media != null) {
 }
 ```
 
-**Multi-Speaker:**
-
-```dart
-final response = await ai.generate(
-  model: googleAI.gemini('gemini-2.5-flash-preview-tts'),
-  prompt: '''
-    Speaker A: Hello, how are you today?
-    Speaker B: I am doing great, thanks for asking!
-  ''',
-  config: GeminiTtsOptions(
-    responseModalities: ['AUDIO'],
-    speechConfig: SpeechConfig(
-      multiSpeakerVoiceConfig: MultiSpeakerVoiceConfig(
-        speakerVoiceConfigs: [
-          SpeakerVoiceConfig(
-            speaker: 'Speaker A',
-            voiceConfig: VoiceConfig(
-              prebuiltVoiceConfig: PrebuiltVoiceConfig(voiceName: 'Puck'),
-            ),
-          ),
-          SpeakerVoiceConfig(
-            speaker: 'Speaker B',
-            voiceConfig: VoiceConfig(
-              prebuiltVoiceConfig: PrebuiltVoiceConfig(voiceName: 'Kore'),
-            ),
-          ),
-        ],
-      ),
-    ),
-  ),
-);
-```
-
 ### Unsupported Features
 
-The following features are not yet supported in the Dart SDK:
-- Embeddings
-- Image Generation (Imagen)
-- Video Generation (Veo)
-- Google Maps Grounding
-- URL Context
-- Files API
+The following features documented in other languages are not yet fully supported in the Dart SDK:
+- **Embeddings**: `googleAI.embedder()` is not yet implemented.
+- **Image Generation**: `imagen-*` models are not yet available.
+- **Video Generation**: `veo-*` models are not yet available.
+- **Context Caching**: Automatic context caching is not explicitly exposed/documented for Dart yet.
+- **Google Maps Grounding**: Not yet exposed in options.
+- **Files API**: No helper methods for uploading files (use direct HTTP or Google Cloud libs).
 
 </LanguageContent>
