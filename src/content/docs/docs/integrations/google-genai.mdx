@@ -1234,21 +1234,6 @@ The Gemini API has specific limitations for JSON schemas:
 
 Gemini 2.5 and newer models support "Thinking" to improve reasoning for complex tasks.
 
-**Thinking Level (Gemini 3.0):**
-
-```dart
-final response = await ai.generate(
-  model: googleAI.gemini('gemini-3-pro-preview'),
-  prompt: 'what is heavier, one kilo of steel or one kilo of feathers',
-  config: GeminiOptions(
-    thinkingConfig: ThinkingConfig(
-      includeThoughts: true,
-      // thinkingLevel currently inferred or defaulted by model
-    ),
-  ),
-);
-```
-
 **Thinking Budget (Gemini 2.5):**
 
 ```dart
@@ -1257,7 +1242,7 @@ final response = await ai.generate(
   prompt: 'what is heavier, one kilo of steel or one kilo of feathers',
   config: GeminiOptions(
     thinkingConfig: ThinkingConfig(
-      thinkingBudget: 8192,
+      thinkingBudget: 2048,
       includeThoughts: true,
     ),
   ),
@@ -1280,7 +1265,7 @@ final response = await ai.generate(
       content: [
          MediaPart(
           media: Media(
-            url: 'https://example.com/video.mp4',
+            url: 'https://download.samplelib.com/mp4/sample-5s.mp4',
             contentType: 'video/mp4',
           ),
         ),
@@ -1302,8 +1287,8 @@ final response = await ai.generate(
       content: [
          MediaPart(
           media: Media(
-            url: 'https://example.com/audio.mp3',
-            contentType: 'audio/mp3',
+            url: 'https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav',
+            contentType: 'audio/wav',
           ),
         ),
       ],
@@ -1342,10 +1327,7 @@ final response = await ai.generate(
   model: googleAI.gemini('gemini-2.5-flash'),
   prompt: 'What are the top tech news stories this week?',
   config: GeminiOptions(
-    googleSearchRetrieval: GoogleSearchRetrieval(
-      mode: 'MODE_DYNAMIC',
-      dynamicThreshold: 0.7,
-    ),
+    googleSearch: GoogleSearch(),
   ),
 );
 ```
